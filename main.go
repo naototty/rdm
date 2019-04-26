@@ -178,6 +178,7 @@ type Assigned struct {
 }
 
 type Issue struct {
+	Id          int         `xml:"id"`
 	Tracker     TrackerTag  `xml:"tracker"`
 	Status      StatusTag   `xml:"status"`
 	Priority    PriorityTag `xml:"priority"`
@@ -216,10 +217,10 @@ func issuesListStdout(pid int) {
 	issues = issuesList(pid, false, issues, 0)
 	issues = issuesList(pid, true, issues, 0)
 
-	fmt.Println("Tracker : Status : Priority : Author : Assigned : Subject : Description : StartDate : DueDate")
+	fmt.Println("Id : Tracker : Status : Priority : Author : Assigned : Subject : Description : StartDate : DueDate")
 	for _, is := range issues.Issues {
-		fmt.Printf("%s:%s:%s:%s:%s:%s:%s:%s:%s\n",
-			is.Tracker.Name, is.Status.Name, is.Priority.Name, is.Author.Name, is.Assigned.Name, is.Subject, is.Description, is.StartDate, is.DueDate)
+		fmt.Printf("%d:%s:%s:%s:%s:%s:%s:%s:%s:%s\n",
+			is.Id, is.Tracker.Name, is.Status.Name, is.Priority.Name, is.Author.Name, is.Assigned.Name, is.Subject, is.Description, is.StartDate, is.DueDate)
 	}
 }
 
@@ -237,6 +238,7 @@ func issuesToXlsx(pid int, outPath string) {
 
 	// Header
 	header := sheet.AddRow()
+	header.AddCell().Value = "Id"
 	header.AddCell().Value = "Traker"
 	header.AddCell().Value = "Status"
 	header.AddCell().Value = "Priority"
@@ -251,6 +253,7 @@ func issuesToXlsx(pid int, outPath string) {
 	for _, is := range issues.Issues {
 		row := sheet.AddRow()
 
+		row.AddCell().Value = strconv.Itoa(is.Id)
 		row.AddCell().Value = is.Tracker.Name
 		row.AddCell().Value = is.Status.Name
 		row.AddCell().Value = is.Priority.Name
@@ -278,6 +281,7 @@ func main() {
 	doExcelOut := flag.Bool("E", false, "Output in Excel format.")
 	fileOutPath := flag.String("f", "redmine.xlsx", "Excel file output path.(use with 'E' option)")
 	issueOutprojectId := flag.Int("i", -1, "Output Issues list of the specified project.")
+	issueId := flag.Int("s", -1, "Show Issues details of the specified Issues Id.")
 
 	flag.Parse()
 
@@ -289,8 +293,10 @@ func main() {
 		}
 	} else {
 		if *issueOutprojectId >= 0 {
+			// iF projectId is set;  then show issues list on the project.
 			issuesListStdout(*issueOutprojectId)
 		} else {
+			// project list
 			projectToStdout()
 		}
 	}
